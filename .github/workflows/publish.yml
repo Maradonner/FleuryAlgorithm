@@ -1,0 +1,25 @@
+name: "Publish Application"
+
+on:
+  workflow_dispatch:
+    inputs:
+      git_branch:
+        required: true
+        type: string
+        default: master
+
+jobs:
+  app_build:
+    name: 'Application build'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout the repository to the runner
+        uses: actions/checkout@v3
+
+      - name: Provide WASM Tools
+        run: dotnet workload install wasm-tools
+
+      - name: Publish
+        run: dotnet publish -c Release -o app
+
