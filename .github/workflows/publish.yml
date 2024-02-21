@@ -22,8 +22,7 @@ jobs:
 
       - name: Publish
         run: |
-          cd Fleury
-          dotnet publish Fleury.csproj -c Release -o app
+          dotnet publish Fleury/Fleury.csproj -c Release -o app
 
       - name: Deploy into Github Actions
         uses: peaceiris/actions-gh-pages@v3
