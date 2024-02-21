@@ -21,7 +21,9 @@ jobs:
         run: dotnet workload install wasm-tools
 
       - name: Publish
-        run: dotnet publish -c Release -o app
+        run: |
+          cd Fleury
+          dotnet publish Fleury.csproj -c Release -o app
 
       - name: Deploy into Github Actions
         uses: peaceiris/actions-gh-pages@v3
