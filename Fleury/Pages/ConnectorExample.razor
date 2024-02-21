@@ -1,0 +1,158 @@
+﻿@using static Fleury.Components.Connector
+@inject MouseService mouseSrv
+@inject IBlazorContextMenuService blazorContextMenuService
+@inject IJSRuntime jsRuntime
+
+<div class="row mt-2">
+    <div class="col">
+        <svg @ref="mySvg" class="bg-light" width="1000" height="500" xmlns="http://www.w3.org/2000/svg"
+             @oncontextmenu:preventDefault="true"
+             @oncontextmenu=@(e => mouseSrv.FireContextMenu(this, e))
+             @onmousemove=@(e => mouseSrv.FireMove(this, e))
+             @onmouseup=@(e => mouseSrv.FireUp(this, e))
+             @onmouseleave=@(e => mouseSrv.FireLeave(this, e))
+             @onclick=@(e => mouseSrv.FireClick(this, e))>
+
+            @foreach (var node in nodes)
+            {
+                @foreach (var connectedPlantId in node.ConnectedTo)
+                {
+                    var connectedPlant = nodes.FirstOrDefault(p => p.Id == connectedPlantId);
+                    if (connectedPlant != null && node.Id < connectedPlant.Id)
+                    {
+                        <Connector X1=node.X Y1=node.Y Dir1=Direction.Top X2=connectedPlant.X Y2=connectedPlant.Y Dir2=Direction.Bottom />
+                    }
+                }
+
+
+                <Draggable Id="@node.Id" @bind-X=node.X @bind-Y=node.Y OnDraggableContextMenu="HandleDraggableContextMenu">
+                    <circle r="@node.R" fill="@node.Fill" stroke="#fff" />
+                    <text text-anchor="middle" alignment-baseline="central" class="pe-none sun-title">@node.Id</text>
+                </Draggable>
+            }
+        </svg>
+    </div>
+</div>
+
+<ContextMenu Id="mainContextMenu" AutoHide="true">
+    <Item OnClick="@AddNewNode">Add a new Node</Item>
+    <Item OnClick="@OnClick">Item 2</Item>
+    <Item OnClick="@OnClick">Item 3</Item>
+    <Item OnClick="@OnClick">Item 4</Item>
+    <Item OnClick="@OnClick">Item 5</Item>
+</ContextMenu>
+
+<ContextMenu Id="nodeContextMenu" AutoHide="true">
+    <Item OnClick="@DeleteNode">Delete a node</Item>
+    <Item>
+        Connect a node
+        <SubMenu>
+            @foreach (var node in nodes)
+            {
+                <Item OnClick="@(() => ConnectNodes(node))">Connect to @node.Id</Item>
+            }
+        </SubMenu>
+    </Item>
+</ContextMenu>
+
+
+@code {
+    private List<Node> nodes = new List<Node>(){
+        new Node { Id = 1, X = 362, Y = 280, R = 35, Fill="#1aaee5" },
+        new Node { Id = 2, X = 266, Y = 232, R = 15, Fill="#04dcd2" },
+        new Node { Id = 3, X = 325, Y = 299, R = 35, Fill="#1aaee5" },
+        new Node { Id = 4, X = 474, Y = 123, R = 15, Fill="#04dcd2" },
+        new Node { Id = 5, X = 462, Y = 258, R = 35, Fill="#1aaee5" },
+    };
+
+    private ElementReference mySvg;
+    private bool showMainContextMenu = true;
+    private int? nodeIdSelectedByContextMenu;
+    private Point LastRightClickPoint;
+
+    private async Task ShowMainContextMenu(int x, int y)
+    {
+        await blazorContextMenuService.ShowMenu("mainContextMenu", x, y);
+    }
+    private async Task ShowNodeContextMenu(int x, int y)
+    {
+        await blazorContextMenuService.ShowMenu("nodeContextMenu", x, y);
+    }
+
+    private void SomeFunc(MouseEventArgs mouseEventArgs)
+    {
+        Console.WriteLine("SOMEFUNC");
+    }
+
+    private async void DeleteNode(ItemClickEventArgs e)
+    {
+        Console.WriteLine($"Here I would delete node with Id:{nodeIdSelectedByContextMenu}");
+    }
+
+    private async void AddNewNode(ItemClickEventArgs e)
+    {
+        var maxNodeId = nodes.Any() ? nodes.Max(x => x.Id) : 0;
+        nodes.Add(new Node
+            {
+                Id = maxNodeId + 1,
+                X = LastRightClickPoint.X,
+                Y = LastRightClickPoint.Y,
+                R = 50,
+                Fill = "#04dcd2"
+            });
+    }
+
+
+    private void OnClick(ItemClickEventArgs e)
+    {
+        Console.WriteLine($"Item Clicked => Menu: {e.ContextMenuId}, MenuTarget: {e.ContextMenuTargetId}, " +
+    $"IsCanceled: {e.IsCanceled}, MenuItem: {e.MenuItemElement}, MouseEvent: {e.MouseEvent}");
+    }
+
+    private void HandleDraggableContextMenu(int id)
+    {
+        Console.WriteLine($"Id is {id}");
+        nodeIdSelectedByContextMenu = id;
+        showMainContextMenu = false;
+    }
+
+    private void ConnectNodes(Node node)
+    {
+        var node1 = nodes.FirstOrDefault(p => p.Id == nodeIdSelectedByContextMenu);
+        var node2 = nodes.FirstOrDefault(p => p.Id == node.Id);
+
+        if (node1 != null && node2 != null
+            && node1.Id != node2.Id
+            && !node1.ConnectedTo.Contains(node2.Id)
+            && !node2.ConnectedTo.Contains(node1.Id)
+        )
+        {
+            if (node1.Id < node2.Id)
+                node1.ConnectedTo.Add(node2.Id);
+            else
+                node2.ConnectedTo.Add(node1.Id);
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        mouseSrv.OnContextMenu += HandleSvgContextMenu;
+        base.OnInitialized();
+    }
+
+    private async void HandleSvgContextMenu(object? sender, MouseEventArgs e)
+    {
+        var pointDto = await jsRuntime.InvokeAsync<PointDto>("getCoordFromSvg", mySvg, e.ClientX, e.ClientY);
+        LastRightClickPoint = new Point((int)pointDto.X, (int)pointDto.Y);
+
+        if (showMainContextMenu)
+        {
+            await ShowMainContextMenu((int)e.ClientX, (int)e.ClientY);
+        }
+        else
+        {
+            await ShowNodeContextMenu((int)e.ClientX, (int)e.ClientY);
+        }
+        showMainContextMenu = true;
+    }
+}
