@@ -34,12 +34,45 @@
     </div>
 </div>
 
+<style>
+    text {
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        fill: #333333;
+    }
+
+    .sun-title {
+        fill: #fff;
+        pointer-events: none !important;
+    }
+
+    .sun {
+        fill: #ff6600;
+        stroke: #fff;
+        stroke-width: 1;
+    }
+</style>
+
+@foreach (var node in nodes)
+{
+    <div class="row g-3 align-items-center">
+        @foreach (var connect in node.ConnectedTo)
+        {
+            <div class="col-auto">
+
+                <label class="col-form-label">From @node.Id to @connect</label>
+            </div>
+
+        }
+    </div>
+}
+
+
 <ContextMenu Id="mainContextMenu" AutoHide="true">
     <Item OnClick="@AddNewNode">Add a new Node</Item>
-    <Item OnClick="@OnClick">Item 2</Item>
-    <Item OnClick="@OnClick">Item 3</Item>
-    <Item OnClick="@OnClick">Item 4</Item>
-    <Item OnClick="@OnClick">Item 5</Item>
 </ContextMenu>
 
 <ContextMenu Id="nodeContextMenu" AutoHide="true">
@@ -57,56 +90,33 @@
 
 
 @code {
-    private List<Node> nodes = new List<Node>(){
-        new Node { Id = 1, X = 362, Y = 280, R = 35, Fill="#1aaee5" },
-        new Node { Id = 2, X = 266, Y = 232, R = 15, Fill="#04dcd2" },
-        new Node { Id = 3, X = 325, Y = 299, R = 35, Fill="#1aaee5" },
-        new Node { Id = 4, X = 474, Y = 123, R = 15, Fill="#04dcd2" },
-        new Node { Id = 5, X = 462, Y = 258, R = 35, Fill="#1aaee5" },
-    };
+    private List<Node> nodes = [];
 
     private ElementReference mySvg;
     private bool showMainContextMenu = true;
     private int? nodeIdSelectedByContextMenu;
-    private Point LastRightClickPoint;
+    private Point LastRightClickPoint = null!;
 
-    private async Task ShowMainContextMenu(int x, int y)
+    private void DeleteNode(ItemClickEventArgs e)
     {
-        await blazorContextMenuService.ShowMenu("mainContextMenu", x, y);
-    }
-    private async Task ShowNodeContextMenu(int x, int y)
-    {
-        await blazorContextMenuService.ShowMenu("nodeContextMenu", x, y);
-    }
-
-    private void SomeFunc(MouseEventArgs mouseEventArgs)
-    {
-        Console.WriteLine("SOMEFUNC");
-    }
-
-    private async void DeleteNode(ItemClickEventArgs e)
-    {
+        var node = nodes.First(p => p.Id == nodeIdSelectedByContextMenu);
+        NodeService.DeleteNode(node);
         Console.WriteLine($"Here I would delete node with Id:{nodeIdSelectedByContextMenu}");
     }
 
-    private async void AddNewNode(ItemClickEventArgs e)
+    private void AddNewNode(ItemClickEventArgs e)
     {
         var maxNodeId = nodes.Any() ? nodes.Max(x => x.Id) : 0;
-        nodes.Add(new Node
-            {
-                Id = maxNodeId + 1,
-                X = LastRightClickPoint.X,
-                Y = LastRightClickPoint.Y,
-                R = 50,
-                Fill = "#04dcd2"
-            });
-    }
+        var node = new Node
+        {
+            Id = maxNodeId + 1,
+            X = LastRightClickPoint.X,
+            Y = LastRightClickPoint.Y,
+            R = 50,
+            Fill = "#04dcd2"
+        };
 
-
-    private void OnClick(ItemClickEventArgs e)
-    {
-        Console.WriteLine($"Item Clicked => Menu: {e.ContextMenuId}, MenuTarget: {e.ContextMenuTargetId}, " +
-    $"IsCanceled: {e.IsCanceled}, MenuItem: {e.MenuItemElement}, MouseEvent: {e.MouseEvent}");
+        NodeService.AddNode(node);
     }
 
     private void HandleDraggableContextMenu(int id)
@@ -118,24 +128,15 @@
 
     private void ConnectNodes(Node node)
     {
-        var node1 = nodes.FirstOrDefault(p => p.Id == nodeIdSelectedByContextMenu);
-        var node2 = nodes.FirstOrDefault(p => p.Id == node.Id);
+        var node1 = nodes.First(p => p.Id == nodeIdSelectedByContextMenu);
+        var node2 = nodes.First(p => p.Id == node.Id);
 
-        if (node1 != null && node2 != null
-            && node1.Id != node2.Id
-            && !node1.ConnectedTo.Contains(node2.Id)
-            && !node2.ConnectedTo.Contains(node1.Id)
-        )
-        {
-            if (node1.Id < node2.Id)
-                node1.ConnectedTo.Add(node2.Id);
-            else
-                node2.ConnectedTo.Add(node1.Id);
-        }
+        NodeService.ConnectNodes(node1, node2);
     }
 
     protected override void OnInitialized()
     {
+        this.nodes = NodeService.GetAllNodes();
         mouseSrv.OnContextMenu += HandleSvgContextMenu;
         base.OnInitialized();
     }
@@ -147,11 +148,11 @@
 
         if (showMainContextMenu)
         {
-            await ShowMainContextMenu((int)e.ClientX, (int)e.ClientY);
+            await blazorContextMenuService.ShowMenu("mainContextMenu", (int)e.ClientX, (int)e.ClientY);
         }
         else
         {
-            await ShowNodeContextMenu((int)e.ClientX, (int)e.ClientY);
+            await blazorContextMenuService.ShowMenu("nodeContextMenu", (int)e.ClientX, (int)e.ClientY);
         }
         showMainContextMenu = true;
     }

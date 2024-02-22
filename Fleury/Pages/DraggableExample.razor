@@ -17,27 +17,7 @@
              @onmouseup=@(e => mouseSrv.FireUp(this, e))
              @onmouseleave=@(e => mouseSrv.FireLeave(this, e))>
 
-            <style>
-                text {
-                    -webkit-user-select: none;
-                    -moz-user-select: none;
-                    -ms-user-select: none;
-                    user-select: none;
-                    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-                    fill: #333333;
-                }
 
-                .sun-title {
-                    fill: #fff;
-                    pointer-events: none !important;
-                }
-
-                .sun {
-                    fill: #ff6600;
-                    stroke: #fff;
-                    stroke-width: 1;
-                }
-            </style>
 
             <Draggable @bind-X=X @bind-Y=Y>
                 <Sun />
