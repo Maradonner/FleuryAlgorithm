@@ -3,8 +3,8 @@
 @inject IBlazorContextMenuService blazorContextMenuService
 @inject IJSRuntime jsRuntime
 
-<div class="row mt-2">
-    <div class="col">
+<div class="d-flex flex-wrap mt-2">
+    <div class="flex-fill">
         <svg @ref="mySvg" class="bg-light" width="1000" height="500" xmlns="http://www.w3.org/2000/svg"
              @oncontextmenu:preventDefault="true"
              @oncontextmenu=@(e => mouseSrv.FireContextMenu(this, e))
@@ -24,13 +24,32 @@
                     }
                 }
 
-
                 <Draggable Id="@node.Id" @bind-X=node.X @bind-Y=node.Y OnDraggableContextMenu="HandleDraggableContextMenu">
                     <circle r="@node.R" fill="@node.Fill" stroke="#fff" />
                     <text text-anchor="middle" alignment-baseline="central" class="pe-none sun-title">@node.Id</text>
                 </Draggable>
             }
         </svg>
+    </div>
+
+    <div class="flex-fill">
+        @foreach (var node in nodes)
+        {
+            <div class="card my-2" style="width: 100%; max-width: 320px;">
+                <div class="card-body">
+                    <h5 class="card-title">Node @node.Id</h5>
+                    <h6 class="card-subtitle mb-2 text-muted">Connections</h6>
+                    <div class="d-flex flex-wrap">
+                        @foreach (var connect in node.ConnectedTo)
+                        {
+                            <span class="badge bg-primary m-1">
+                                <i class="bi bi-arrow-right"></i> To @connect
+                            </span>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
     </div>
 </div>
 
@@ -55,20 +74,6 @@
         stroke-width: 1;
     }
 </style>
-
-@foreach (var node in nodes)
-{
-    <div class="row g-3 align-items-center">
-        @foreach (var connect in node.ConnectedTo)
-        {
-            <div class="col-auto">
-
-                <label class="col-form-label">From @node.Id to @connect</label>
-            </div>
-
-        }
-    </div>
-}
 
 
 <ContextMenu Id="mainContextMenu" AutoHide="true">
