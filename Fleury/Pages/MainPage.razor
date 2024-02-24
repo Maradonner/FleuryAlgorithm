@@ -102,6 +102,21 @@
     private int? nodeIdSelectedByContextMenu;
     private Point LastRightClickPoint = null!;
 
+    protected override void OnInitialized()
+    {
+        this.nodes = NodeService.GetAllNodes();
+        mouseSrv.OnContextMenu += HandleSvgContextMenu;
+        NodeService.OnGraphUpdated += OnGraphUpdated;
+        base.OnInitialized();
+    }
+
+    private void OnGraphUpdated()
+    {
+        Console.WriteLine("GRAPH UPDATED!!!");
+        var isEuler = EulerGraphService.IsEulerGraph(nodes);
+        Console.WriteLine($"isEuler: {isEuler}");
+    }
+
     private void DeleteNode(ItemClickEventArgs e)
     {
         var node = nodes.First(p => p.Id == nodeIdSelectedByContextMenu);
@@ -137,13 +152,6 @@
         var node2 = nodes.First(p => p.Id == node.Id);
 
         NodeService.ConnectNodes(node1, node2);
-    }
-
-    protected override void OnInitialized()
-    {
-        this.nodes = NodeService.GetAllNodes();
-        mouseSrv.OnContextMenu += HandleSvgContextMenu;
-        base.OnInitialized();
     }
 
     private async void HandleSvgContextMenu(object? sender, MouseEventArgs e)

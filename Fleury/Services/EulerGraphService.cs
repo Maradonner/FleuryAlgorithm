@@ -4,29 +4,29 @@ namespace Fleury.Services;
 
 public static class EulerGraphService
 {
-    public static bool IsEulerGraph(Node[] plants)
+    public static bool IsEulerGraph(List<Node> nodes)
     {
         // Check if all vertices are connected
-        if (!IsConnectedGraph(plants))
+        if (!IsConnectedGraph(nodes))
             return false;
 
         // Check if all vertices have an even degree
-        return plants.All(plant => plant.ConnectedTo.Count % 2 == 0);
+        return nodes.All(plant => plant.ConnectedTo.Count % 2 == 0);
     }
 
-    private static bool IsConnectedGraph(Node[] plants)
+    private static bool IsConnectedGraph(List<Node> nodes)
     {
-        if (plants.Length == 0)
+        if (nodes.Count == 0)
             return true;
 
         var visited = new HashSet<int>();
-        DepthFirstSearch(plants, plants[0], visited);
+        DepthFirstSearch(nodes, nodes[0], visited);
 
         // Graph is connected if all vertices are visited
-        return visited.Count == plants.Length;
+        return visited.Count == nodes.Count;
     }
 
-    private static void DepthFirstSearch(Node[] plants, Node current, HashSet<int> visited)
+    private static void DepthFirstSearch(List<Node> nodes, Node current, HashSet<int> visited)
     {
         visited.Add(current.Id);
 
@@ -34,10 +34,10 @@ public static class EulerGraphService
         {
             if (!visited.Contains(connectedId))
             {
-                var next = plants.FirstOrDefault(p => p.Id == connectedId);
+                var next = nodes.FirstOrDefault(p => p.Id == connectedId);
                 if (next != null)
                 {
-                    DepthFirstSearch(plants, next, visited);
+                    DepthFirstSearch(nodes, next, visited);
                 }
             }
         }
