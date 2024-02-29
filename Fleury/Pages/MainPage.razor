@@ -112,7 +112,6 @@
 
     private void OnGraphUpdated()
     {
-        Console.WriteLine("GRAPH UPDATED!!!");
         var isEuler = EulerGraphService.IsEulerGraph(nodes);
         Console.WriteLine($"isEuler: {isEuler}");
     }
@@ -121,7 +120,6 @@
     {
         var node = nodes.First(p => p.Id == nodeIdSelectedByContextMenu);
         NodeService.DeleteNode(node);
-        Console.WriteLine($"Here I would delete node with Id:{nodeIdSelectedByContextMenu}");
     }
 
     private void AddNewNode(ItemClickEventArgs e)

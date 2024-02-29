@@ -46,23 +46,12 @@
     <link href="_content/Blazor.ContextMenu/blazorContextMenu.min.css" rel="stylesheet" />
     <script src="_content/Blazor.ContextMenu/blazorContextMenu.min.js"></script>
     <script>
-        function getSvgCoordinates(svgElement, clientX, clientY) {
-            var rect = svgElement.getBoundingClientRect();
-            return {
-                x: clientX - rect.left,
-                y: clientY - rect.top
-            };
-        }
-    </script>
-    <script>
         // Adjust the function to accept additional parameters
         function getCoordFromSvg(svg, clientX, clientY) {
             const point = svg.createSVGPoint();
             point.x = clientX;
             point.y = clientY;
-
             const transformedPoint = point.matrixTransform(svg.getScreenCTM().inverse());
-            console.log(`Clicked at: x: ${transformedPoint.x}, y: ${transformedPoint.y}`);
 
             return { x: transformedPoint.x, y: transformedPoint.y };
         }

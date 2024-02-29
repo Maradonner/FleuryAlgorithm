@@ -22,6 +22,11 @@ public static class NodeService
 
     public static void DeleteNode(Node node)
     {
+        foreach (var n in nodes)
+        {
+            n.ConnectedTo.Remove(node.Id);
+        }
+
         nodes.Remove(node);
         OnGraphUpdated?.Invoke();
     }
@@ -35,10 +40,6 @@ public static class NodeService
             node1.ConnectedTo.Add(node2.Id);
             node2.ConnectedTo.Add(node1.Id);
 
-            //if (node1.Id < node2.Id)
-            //    node1.ConnectedTo.Add(node2.Id);
-            //else
-            //    node2.ConnectedTo.Add(node1.Id);
             OnGraphUpdated?.Invoke();
         }
     }

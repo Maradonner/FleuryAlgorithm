@@ -8,10 +8,18 @@ public static class EulerGraphService
     {
         // Check if all vertices are connected
         if (!IsConnectedGraph(nodes))
+        {
+            Console.WriteLine("Graph is not connected");
             return false;
+        }
 
         // Check if all vertices have an even degree
-        return nodes.All(plant => plant.ConnectedTo.Count % 2 == 0);
+        var isHaveEvenDegree = nodes.All(plant => plant.ConnectedTo.Count % 2 == 0);
+        if (!isHaveEvenDegree)
+        {
+            Console.WriteLine("NOT all vertices have an even degree");
+        }
+        return isHaveEvenDegree;
     }
 
     private static bool IsConnectedGraph(List<Node> nodes)
