@@ -113,8 +113,9 @@
 
     private void OnGraphUpdated()
     {
-        var isEuler = EulerGraphService.IsEulerGraph(nodes);
+        var isEuler = EulerGraphService.IsEulerian(nodes);
         Console.WriteLine($"isEuler: {isEuler}");
+        var fleuryPath = FleuryAlgorithm.FindEulerianPath(nodes);
     }
 
     private void DeleteNode(ItemClickEventArgs e)

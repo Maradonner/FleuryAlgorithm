@@ -4,22 +4,19 @@ namespace Fleury.Services;
 
 public static class EulerGraphService
 {
-    public static bool IsEulerGraph(List<Node> nodes)
+    public static EulerianType IsEulerian(List<Node> nodes)
     {
-        // Check if all vertices are connected
         if (!IsConnectedGraph(nodes))
-        {
-            Console.WriteLine("Graph is not connected");
-            return false;
-        }
+            return EulerianType.NotEulerian;
 
-        // Check if all vertices have an even degree
-        var isHaveEvenDegree = nodes.All(plant => plant.ConnectedTo.Count % 2 == 0);
-        if (!isHaveEvenDegree)
-        {
-            Console.WriteLine("NOT all vertices have an even degree");
-        }
-        return isHaveEvenDegree;
+        int oddDegreeCount = nodes.Count(node => node.ConnectedTo.Count % 2 != 0);
+
+        if (oddDegreeCount > 2)
+            return EulerianType.NotEulerian;
+        else if (oddDegreeCount == 2)
+            return EulerianType.SemiEulerian;
+        else
+            return EulerianType.Eulerian;
     }
 
     private static bool IsConnectedGraph(List<Node> nodes)
