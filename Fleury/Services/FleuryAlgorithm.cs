@@ -19,6 +19,7 @@ public static class FleuryAlgorithm
         return path;
     }
 
+    //NEED FIX
     private static void TraverseGraph(Node current, List<Tuple<int, int>> edges, List<int> path, List<Node> nodes)
     {
         path.Add(current.Id);
@@ -55,5 +56,24 @@ public static class FleuryAlgorithm
         }
 
         return edges;
+    }
+
+    public static void PrintEulerianPath(List<int> path)
+    {
+        if (path == null || !path.Any())
+        {
+            Console.WriteLine("No Eulerian Path exists for the given graph.");
+            return;
+        }
+
+        Console.WriteLine("Eulerian Path:");
+        for (int i = 0; i < path.Count; i++)
+        {
+            if (i == path.Count - 1)
+                Console.Write($"{path[i]}");
+            else
+                Console.Write($"{path[i]} -> ");
+        }
+        Console.WriteLine(); // Newline for clean output
     }
 }
