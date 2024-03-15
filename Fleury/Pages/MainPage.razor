@@ -4,6 +4,29 @@
 @inject IBlazorContextMenuService blazorContextMenuService
 @inject IJSRuntime jsRuntime
 
+@if (graphInfo != null)
+{
+    <div class="container mt-3">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card">
+                    <div class="card-header">
+                        Graph Information
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">Number of vertices: <span class="badge bg-info float-end">@graphInfo.NumberOfVertices</span></li>
+                        <li class="list-group-item">Number of edges: <span class="badge bg-info float-end">@graphInfo.NumberOfEdges</span></li>
+                        <li class="list-group-item">Connected: <span class="badge float-end" style="background-color: @((graphInfo.IsConnected) ? "#28a745" : "#dc3545");">@((graphInfo.IsConnected) ? "Yes" : "No")</span></li>
+                        <li class="list-group-item">Degrees of vertices: <span class="badge bg-secondary float-end">@string.Join(", ", graphInfo.DegreesOfVertices)</span></li>
+                        <li class="list-group-item">Number of vertices of odd degree: <span class="badge bg-info float-end">@graphInfo.NumberOfVerticesOfOddDegree</span></li>
+                        <li class="list-group-item">Unicursal: <span class="badge float-end" style="background-color: @(graphInfo.IsUnicursal ? "#28a745" : "#dc3545");">@((graphInfo.IsUnicursal) ? "Yes" : "No")</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 <div class="d-flex flex-wrap mt-2">
     <div class="flex-fill">
         <svg @ref="mySvg" class="bg-light" width="1000" height="500" xmlns="http://www.w3.org/2000/svg"
@@ -88,7 +111,10 @@
         <SubMenu>
             @foreach (var node in nodes)
             {
-                <Item OnClick="@(() => ConnectNodes(node))">Connect to @node.Id</Item>
+                if (node.Id != nodeIdSelectedByContextMenu)
+                {
+                    <Item OnClick="@(() => ConnectNodes(node))">Connect to @node.Id</Item>
+                }
             }
         </SubMenu>
     </Item>
@@ -102,6 +128,7 @@
     private bool showMainContextMenu = true;
     private int? nodeIdSelectedByContextMenu;
     private Point LastRightClickPoint = null!;
+    private GraphInfo? graphInfo = new();
 
     protected override void OnInitialized()
     {
@@ -117,6 +144,25 @@
         Console.WriteLine($"isEuler: {isEuler}");
         var fleuryPath = FleuryAlgorithm.FindEulerianPath(nodes);
         FleuryAlgorithm.PrintEulerianPath(fleuryPath);
+
+        int numberOfVertices = nodes.Count;
+        int numberOfEdges = nodes.Sum(node => node.ConnectedTo.Count) / 2;
+        bool isConnected = EulerGraphService.IsConnectedGraph(nodes);
+        var degreesOfVertices = nodes.Select(node => node.ConnectedTo.Count).ToList();
+        int numberOfVerticesOfOddDegree = degreesOfVertices.Count(degree => degree % 2 != 0);
+        bool isUnicursal = isEuler == EulerianType.Eulerian || isEuler == EulerianType.SemiEulerian;
+
+        var graphInfo = new GraphInfo
+        {
+            NumberOfVertices = numberOfVertices,
+            NumberOfEdges = numberOfEdges,
+            IsConnected = isConnected,
+            DegreesOfVertices = degreesOfVertices,
+            NumberOfVerticesOfOddDegree = numberOfVerticesOfOddDegree,
+            IsUnicursal = isUnicursal
+        };
+
+        this.graphInfo = graphInfo;
     }
 
     private void DeleteNode(ItemClickEventArgs e)

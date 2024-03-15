@@ -19,7 +19,7 @@ public static class EulerGraphService
             return EulerianType.Eulerian;
     }
 
-    private static bool IsConnectedGraph(List<Node> nodes)
+    public static bool IsConnectedGraph(List<Node> nodes)
     {
         if (nodes.Count == 0)
             return true;
