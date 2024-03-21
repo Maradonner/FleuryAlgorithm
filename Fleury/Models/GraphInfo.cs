@@ -9,4 +9,5 @@ public class GraphInfo
     public List<int> DegreesOfVertices { get; set; } = new List<int>();
     public int NumberOfVerticesOfOddDegree { get; set; }
     public bool IsUnicursal { get; set; }
+    public string FleuryPath { get; set; }
 }

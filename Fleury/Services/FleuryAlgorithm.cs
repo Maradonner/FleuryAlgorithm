@@ -1,4 +1,5 @@
 ﻿using Fleury.Models;
+using System.Text;
 
 namespace Fleury.Services;
 
@@ -6,7 +7,7 @@ public static class FleuryAlgorithm
 {
     public static List<int> FindEulerianPath(List<Node> nodes)
     {
-        if (EulerGraphService.IsEulerian(nodes) == EulerianType.NotEulerian)
+        if (nodes.Count == 0 || EulerGraphService.IsEulerian(nodes) == EulerianType.NotEulerian)
             return new List<int>();
 
         var path = new List<int>();
@@ -58,22 +59,29 @@ public static class FleuryAlgorithm
         return edges;
     }
 
-    public static void PrintEulerianPath(List<int> path)
+    public static string PrintEulerianPath(List<int> path, List<Node> nodes)
     {
-        if (path == null || !path.Any())
-        {
-            Console.WriteLine("No Eulerian Path exists for the given graph.");
-            return;
-        }
+        if (nodes.Count == 0)
+            return "There is no exists any nodes";
 
-        Console.WriteLine("Eulerian Path:");
+        if (!EulerGraphService.IsConnectedGraph(nodes))
+            return "Graph is not connected";
+
+        if (EulerGraphService.IsEulerian(nodes) == EulerianType.NotEulerian)
+            return "Graph is not Eulerian";
+
+        if (path == null || !path.Any())
+            return "No Eulerian Path exists for the given graph.";
+
+        var sb = new StringBuilder();
+        sb.Append("Eulerian Path:");
         for (int i = 0; i < path.Count; i++)
         {
             if (i == path.Count - 1)
-                Console.Write($"{path[i]}");
+                sb.Append($"{path[i]}");
             else
-                Console.Write($"{path[i]} -> ");
+                sb.Append($"{path[i]} ➡ ");
         }
-        Console.WriteLine(); // Newline for clean output
+        return sb.ToString();
     }
 }

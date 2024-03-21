@@ -14,12 +14,13 @@
                         Graph Information
                     </div>
                     <ul class="list-group list-group-flush">
-                        <li class="list-group-item">Number of vertices: <span class="badge bg-info float-end">@graphInfo.NumberOfVertices</span></li>
-                        <li class="list-group-item">Number of edges: <span class="badge bg-info float-end">@graphInfo.NumberOfEdges</span></li>
-                        <li class="list-group-item">Connected: <span class="badge float-end" style="background-color: @((graphInfo.IsConnected) ? "#28a745" : "#dc3545");">@((graphInfo.IsConnected) ? "Yes" : "No")</span></li>
-                        <li class="list-group-item">Degrees of vertices: <span class="badge bg-secondary float-end">@string.Join(", ", graphInfo.DegreesOfVertices)</span></li>
-                        <li class="list-group-item">Number of vertices of odd degree: <span class="badge bg-info float-end">@graphInfo.NumberOfVerticesOfOddDegree</span></li>
-                        <li class="list-group-item">Unicursal: <span class="badge float-end" style="background-color: @(graphInfo.IsUnicursal ? "#28a745" : "#dc3545");">@((graphInfo.IsUnicursal) ? "Yes" : "No")</span></li>
+                        <li class="list-group-item">Количество вершин: <span class="badge bg-info float-end">@graphInfo.NumberOfVertices</span></li>
+                        <li class="list-group-item">Количество ребер: <span class="badge bg-info float-end">@graphInfo.NumberOfEdges</span></li>
+                        <li class="list-group-item">Степени вершин: <span class="badge bg-secondary float-end">@string.Join(", ", graphInfo.DegreesOfVertices)</span></li>
+                        <li class="list-group-item">Количество вершин нечетной степени: <span class="badge bg-info float-end">@graphInfo.NumberOfVerticesOfOddDegree</span></li>
+                        <li class="list-group-item">Связный: <span class="badge float-end" style="background-color: @((graphInfo.IsConnected) ? "#28a745" : "#dc3545");">@((graphInfo.IsConnected) ? "Yes" : "No")</span></li>
+                        <li class="list-group-item">Уникурсальный: <span class="badge float-end" style="background-color: @(graphInfo.IsUnicursal ? "#28a745" : "#dc3545");">@((graphInfo.IsUnicursal) ? "Yes" : "No")</span></li>
+                        <li class="list-group-item">Эйлеров цикл: <span class="badge bg-info float-end">@graphInfo.FleuryPath</span></li>
                     </ul>
                 </div>
             </div>
@@ -135,15 +136,69 @@
         this.nodes = NodeService.GetAllNodes();
         mouseSrv.OnContextMenu += HandleSvgContextMenu;
         NodeService.OnGraphUpdated += OnGraphUpdated;
+        UpdateGraphInfo();
         base.OnInitialized();
     }
 
     private void OnGraphUpdated()
     {
+        UpdateGraphInfo();
+        //UpdateNodeColorsForEulerianPath();
+    }
+
+    private void UpdateNodeColorsForEulerianPath()
+    {
+        var eulerStatus = EulerGraphService.IsEulerian(nodes);
+
+        foreach (var node in nodes)
+        {
+            node.Fill = "#333"; // Default color
+        }
+
+
+
+        if (eulerStatus == EulerianType.NotEulerian)
+        {
+            if (!EulerGraphService.IsConnectedGraph(nodes))
+            {
+                // Highlight disconnected nodes in red
+                foreach (var node in nodes)
+                {
+                    if (node.ConnectedTo.Count == 0)
+                    {
+                        node.Fill = "#ff0000"; // Red for disconnected
+                    }
+                }
+            }
+            else
+            {
+                // For a non-Eulerian but connected graph, highlight nodes with odd degrees
+                var nodesWithOddDegree = nodes.Where(n => n.ConnectedTo.Count % 2 != 0).ToList();
+                foreach (var node in nodesWithOddDegree)
+                {
+                    node.Fill = "#ffa500"; // Orange for nodes that could be connected/removed
+                }
+            }
+        }
+
+        // If the graph is Eulerian, you might choose not to highlight any nodes,
+        // or highlight them in a color that signifies they're part of an Eulerian circuit
+        else if (eulerStatus == EulerianType.Eulerian)
+        {
+            foreach (var node in nodes)
+            {
+                node.Fill = "#28a745"; // Green for Eulerian
+            }
+        }
+
+    }
+
+
+    private void UpdateGraphInfo()
+    {
         var isEuler = EulerGraphService.IsEulerian(nodes);
-        Console.WriteLine($"isEuler: {isEuler}");
         var fleuryPath = FleuryAlgorithm.FindEulerianPath(nodes);
-        FleuryAlgorithm.PrintEulerianPath(fleuryPath);
+        var fleuryPathString = FleuryAlgorithm.PrintEulerianPath(fleuryPath, nodes);
 
         int numberOfVertices = nodes.Count;
         int numberOfEdges = nodes.Sum(node => node.ConnectedTo.Count) / 2;
@@ -153,14 +208,15 @@
         bool isUnicursal = isEuler == EulerianType.Eulerian || isEuler == EulerianType.SemiEulerian;
 
         var graphInfo = new GraphInfo
-        {
-            NumberOfVertices = numberOfVertices,
-            NumberOfEdges = numberOfEdges,
-            IsConnected = isConnected,
-            DegreesOfVertices = degreesOfVertices,
-            NumberOfVerticesOfOddDegree = numberOfVerticesOfOddDegree,
-            IsUnicursal = isUnicursal
-        };
+            {
+                NumberOfVertices = numberOfVertices,
+                NumberOfEdges = numberOfEdges,
+                IsConnected = isConnected,
+                DegreesOfVertices = degreesOfVertices,
+                NumberOfVerticesOfOddDegree = numberOfVerticesOfOddDegree,
+                IsUnicursal = isUnicursal,
+                FleuryPath = fleuryPathString
+            };
 
         this.graphInfo = graphInfo;
     }

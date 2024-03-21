@@ -22,7 +22,7 @@ public static class EulerGraphService
     public static bool IsConnectedGraph(List<Node> nodes)
     {
         if (nodes.Count == 0)
-            return true;
+            return false;
 
         var visited = new HashSet<int>();
         DepthFirstSearch(nodes, nodes[0], visited);
