@@ -45,7 +45,7 @@
                     var connectedPlant = nodes.FirstOrDefault(p => p.Id == connectedPlantId);
                     if (connectedPlant != null && node.Id < connectedPlant.Id)
                     {
-                        <Connector X1=node.X Y1=node.Y Dir1=Direction.Top X2=connectedPlant.X Y2=connectedPlant.Y Dir2=Direction.Bottom />
+                        <Connector Node1=node X1=node.X Y1=node.Y Dir1=Direction.Top Node2=connectedPlant X2=connectedPlant.X Y2=connectedPlant.Y Dir2=Direction.Bottom />
                     }
                 }
 
@@ -123,6 +123,7 @@
 
 
 @code {
+    [Parameter] public List<Node> InitNodes { get; set; }
     private List<Node> nodes = [];
 
     private ElementReference mySvg;
@@ -133,17 +134,18 @@
 
     protected override void OnInitialized()
     {
+        NodeService.InitNodes(InitNodes);
         this.nodes = NodeService.GetAllNodes();
         mouseSrv.OnContextMenu += HandleSvgContextMenu;
         NodeService.OnGraphUpdated += OnGraphUpdated;
-        UpdateGraphInfo();
+        OnGraphUpdated();
         base.OnInitialized();
     }
 
     private void OnGraphUpdated()
     {
         UpdateGraphInfo();
-        //UpdateNodeColorsForEulerianPath();
+        UpdateNodeColorsForEulerianPath();
     }
 
     private void UpdateNodeColorsForEulerianPath()
@@ -152,45 +154,31 @@
 
         foreach (var node in nodes)
         {
-            node.Fill = "#333"; // Default color
+            node.Fill = "#1aaee5";
         }
-
 
 
         if (eulerStatus == EulerianType.NotEulerian)
         {
             if (!EulerGraphService.IsConnectedGraph(nodes))
             {
-                // Highlight disconnected nodes in red
                 foreach (var node in nodes)
                 {
                     if (node.ConnectedTo.Count == 0)
                     {
-                        node.Fill = "#ff0000"; // Red for disconnected
+                        node.Fill = "#ff0000";
                     }
                 }
             }
             else
             {
-                // For a non-Eulerian but connected graph, highlight nodes with odd degrees
                 var nodesWithOddDegree = nodes.Where(n => n.ConnectedTo.Count % 2 != 0).ToList();
                 foreach (var node in nodesWithOddDegree)
                 {
-                    node.Fill = "#ffa500"; // Orange for nodes that could be connected/removed
+                    node.Fill = "#ffa500";
                 }
             }
         }
-
-        // If the graph is Eulerian, you might choose not to highlight any nodes,
-        // or highlight them in a color that signifies they're part of an Eulerian circuit
-        else if (eulerStatus == EulerianType.Eulerian)
-        {
-            foreach (var node in nodes)
-            {
-                node.Fill = "#28a745"; // Green for Eulerian
-            }
-        }
-
     }
 
 
@@ -235,8 +223,8 @@
             Id = maxNodeId + 1,
             X = LastRightClickPoint.X,
             Y = LastRightClickPoint.Y,
-            R = 50,
-            Fill = "#04dcd2"
+            R = 35,
+            Fill = "#1aaee5"
         };
 
         NodeService.AddNode(node);

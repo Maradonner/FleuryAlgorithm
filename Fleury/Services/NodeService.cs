@@ -4,15 +4,17 @@ public static class NodeService
 {
     public static event Action OnGraphUpdated;
 
-    private static List<Node> nodes = [
-        new Node { Id = 1, X = 362, Y = 280, R = 35, Fill="#1aaee5" },
-        new Node { Id = 2, X = 266, Y = 232, R = 15, Fill="#04dcd2" },
-        new Node { Id = 3, X = 325, Y = 299, R = 35, Fill="#1aaee5" },
-        new Node { Id = 4, X = 474, Y = 123, R = 15, Fill="#04dcd2" },
-        new Node { Id = 5, X = 462, Y = 258, R = 35, Fill="#1aaee5" }
-    ];
+    private static List<Node> nodes = [];
 
     public static List<Node> GetAllNodes() => nodes;
+
+    public static void InitNodes(List<Node> initNodes)
+    {
+        if (initNodes == null)
+            nodes = [];
+        else
+            nodes = [..initNodes];
+    }
 
     public static void AddNode(Node node)
     {
@@ -42,5 +44,12 @@ public static class NodeService
 
             OnGraphUpdated?.Invoke();
         }
+    }
+
+    public static void DisconnectNodes(Node node1, Node node2)
+    {
+        node1.ConnectedTo.Remove(node2.Id);
+        node2.ConnectedTo.Remove(node1.Id);
+        OnGraphUpdated?.Invoke();
     }
 }
