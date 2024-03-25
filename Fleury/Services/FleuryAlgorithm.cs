@@ -13,7 +13,8 @@ public static class FleuryAlgorithm
         var path = new List<int>();
         var edges = BuildEdgeList(nodes);
 
-        Node startNode = nodes.FirstOrDefault(n => n.ConnectedTo.Count % 2 == 1) ?? nodes[0]; // Start at a node of odd degree if any, otherwise start at any node
+        // Start at a node of odd degree if any, otherwise start at any node
+        Node startNode = nodes.FirstOrDefault(n => n.ConnectedTo.Count % 2 == 1) ?? nodes[0];
 
         TraverseGraph(startNode, edges, path, nodes);
 
